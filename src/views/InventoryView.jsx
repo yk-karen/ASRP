@@ -1,6 +1,7 @@
 import React from 'react';
-import { Package, Clock, TrendingDown, ArrowRight, ShieldCheck, Timer } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Package, Clock, TrendingDown, ArrowRight, ShieldCheck, Timer, Camera } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import ScannerModal from '../components/ScannerModal';
 
 const LifecycleStep = ({ label, days, price, active, isFirst, isLast }) => (
   <div className="flex-1 relative">
@@ -75,6 +76,25 @@ const inventoryData = [
 
 const InventoryView = () => {
   const [selectedProduct, setSelectedProduct] = React.useState(inventoryData[2]);
+  const [isScannerOpen, setIsScannerOpen] = React.useState(false);
+  const [items, setItems] = React.useState(inventoryData);
+
+  const handleScanComplete = (data) => {
+    const newItem = {
+      id: items.length + 1,
+      name: data.name,
+      category: data.category,
+      stock: 1,
+      arrival: new Date().toISOString().split('T')[0],
+      expiry: 'N/A',
+      price: '$0.00',
+      status: 'Fresh',
+      age: 0,
+      discount: '0%'
+    };
+    setItems([newItem, ...items]);
+    setSelectedProduct(newItem);
+  };
 
   return (
     <div className="space-y-8 max-w-[1400px] mx-auto">
@@ -83,8 +103,23 @@ const InventoryView = () => {
           <h1 className="text-3xl font-bold">Inventory Management</h1>
           <p className="text-muted mt-1">Monitor product lifecycles and automated discounts.</p>
         </div>
-        <button className="btn-primary">Add New Product</button>
+        <div className="flex gap-4">
+          <button 
+            onClick={() => setIsScannerOpen(true)}
+            className="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+          >
+            <Camera size={18} />
+            Scan Item
+          </button>
+          <button className="btn-primary">Add New Product</button>
+        </div>
       </header>
+
+      <ScannerModal 
+        isOpen={isScannerOpen} 
+        onClose={() => setIsScannerOpen(false)} 
+        onScanComplete={handleScanComplete}
+      />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-8">
@@ -111,7 +146,7 @@ const InventoryView = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {inventoryData.map((item) => (
+                  {items.map((item) => (
                     <tr 
                       key={item.id} 
                       className={`group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer ${selectedProduct.id === item.id ? 'bg-primary/5' : ''}`}

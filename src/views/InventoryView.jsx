@@ -2,6 +2,7 @@ import React from 'react';
 import { Package, Clock, TrendingDown, ArrowRight, ShieldCheck, Timer, Camera } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ScannerModal from '../components/ScannerModal';
+import { supabase } from '../lib/supabase';
 
 const LifecycleStep = ({ label, days, price, active, isFirst, isLast }) => (
   <div className="flex-1 relative">
@@ -65,34 +66,26 @@ const ProductLifecycle = ({ currentDays }) => {
   );
 };
 
-const inventoryData = [
-  { id: 1, name: 'Cotton Crewneck Sweater', category: 'Clothing', stock: 124, arrival: '2024-02-15', expiry: 'N/A', price: '$59.00', status: 'Fresh', age: 15, discount: '0%' },
-  { id: 2, name: 'Ultra-Comfort Sneakers', category: 'Footwear', stock: 45, arrival: '2024-01-10', expiry: 'N/A', price: '$108.00', status: 'Aging', age: 45, discount: '10%' },
-  { id: 3, name: 'Vitamin C Complex (100ml)', category: 'Pharmacy', stock: 512, arrival: '2023-11-20', expiry: '2024-05-30', price: '$22.50', status: 'Near Expiry', age: 85, discount: '25%' },
-  { id: 4, name: 'Ceramic Table Lamp', category: 'Home Decor', stock: 12, arrival: '2023-09-05', expiry: 'N/A', price: '$45.00', status: 'Stagnant', age: 120, discount: '50%' },
-  { id: 5, name: 'Wireless Headphones V2', category: 'Electronics', stock: 88, arrival: '2024-02-01', expiry: 'N/A', price: '$199.00', status: 'Fresh', age: 28, discount: '0%' },
-  { id: 6, name: 'Linen Summer Dress', category: 'Clothing', stock: 65, arrival: '2024-01-05', expiry: 'N/A', price: '$72.00', status: 'Aging', age: 55, discount: '10%' },
-];
 
-const InventoryView = () => {
-  const [selectedProduct, setSelectedProduct] = React.useState(inventoryData[2]);
+
+const InventoryView = ({ products, onAddProduct }) => {
+  const [selectedProduct, setSelectedProduct] = React.useState(products[0] || null);
   const [isScannerOpen, setIsScannerOpen] = React.useState(false);
-  const [items, setItems] = React.useState(inventoryData);
 
   const handleScanComplete = (data) => {
     const newItem = {
-      id: items.length + 1,
+      id: Date.now(),
       name: data.name,
       category: data.category,
       stock: 1,
       arrival: new Date().toISOString().split('T')[0],
       expiry: 'N/A',
-      price: '$0.00',
+      price: '₹0.00',
       status: 'Fresh',
       age: 0,
       discount: '0%'
     };
-    setItems([newItem, ...items]);
+    onAddProduct(newItem);
     setSelectedProduct(newItem);
   };
 
@@ -106,7 +99,7 @@ const InventoryView = () => {
         <div className="flex gap-4">
           <button 
             onClick={() => setIsScannerOpen(true)}
-            className="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+            className="px-6 py-2.5 bg-bg-card border border-border text-text-main rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-sm"
           >
             <Camera size={18} />
             Scan Item
@@ -135,7 +128,7 @@ const InventoryView = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-900/50 text-muted uppercase text-[10px] font-bold tracking-wider">
+                  <tr className="bg-slate-100/50 dark:bg-slate-800/50 text-text-muted uppercase text-[10px] font-bold tracking-wider">
                     <td className="px-6 py-4">Product Name</td>
                     <td className="px-6 py-4">Stock</td>
                     <td className="px-6 py-4">Arrival</td>
@@ -146,7 +139,7 @@ const InventoryView = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {items.map((item) => (
+                  {products.map((item) => (
                     <tr 
                       key={item.id} 
                       className={`group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer ${selectedProduct.id === item.id ? 'bg-primary/5' : ''}`}
@@ -196,20 +189,20 @@ const InventoryView = () => {
           <div className="card">
             <h3 className="text-lg font-bold mb-6">Product Details</h3>
             <div className="space-y-4">
-              <div className="aspect-square rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700">
-                <Package size={48} className="text-slate-300" />
+              <div className="aspect-square rounded-xl bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center border-2 border-dashed border-border transition-colors">
+                <Package size={48} className="text-text-muted/30" />
               </div>
               <div>
                 <h4 className="font-bold text-xl">{selectedProduct.name}</h4>
-                <p className="text-sm text-muted">{selectedProduct.category}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{selectedProduct.category}</p>
               </div>
               <div className="grid grid-cols-2 gap-4 py-4 border-y border-border">
                 <div>
-                  <p className="text-[10px] uppercase font-bold text-muted">Base Price</p>
+                  <p className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Base Price</p>
                   <p className="font-bold">{selectedProduct.price}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase font-bold text-muted">Arrival Date</p>
+                  <p className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Arrival Date</p>
                   <p className="font-bold text-sm">{selectedProduct.arrival}</p>
                 </div>
               </div>

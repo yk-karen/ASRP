@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-  DollarSign, 
+  IndianRupee, 
   Package, 
   AlertCircle, 
   TrendingUp,
@@ -60,7 +60,16 @@ const pricingTrends = [
   { date: 'Sun', revenue: 8200, potential: 6800 },
 ];
 
-const DashboardHome = () => {
+const DashboardHome = ({ products }) => {
+  const totalValue = products.reduce((acc, p) => acc + parseFloat(p.price.replace('₹', '')), 0);
+  const surplusSold = products.filter(p => p.discount > 0).reduce((acc, p) => acc + (parseFloat(p.price.replace('₹', '')) * (p.discount / 100)), 0);
+  const agingItems = products.filter(p => p.age > 30).length;
+  const expiringBatches = products.filter(p => {
+    if (p.expiry === 'N/A') return false;
+    const daysLeft = Math.ceil((new Date(p.expiry) - new Date()) / (1000 * 60 * 60 * 24));
+    return daysLeft < 30;
+  }).length;
+
   return (
     <div className="space-y-8 max-w-[1400px] mx-auto">
       <header>
@@ -72,15 +81,15 @@ const DashboardHome = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
           title="Total Inventory Value" 
-          value="$1.24M" 
+          value={`₹${(totalValue / 1000).toFixed(2)}K`} 
           change="2.4" 
           isPositive={true} 
-          icon={DollarSign} 
+          icon={IndianRupee} 
           color="primary" 
         />
         <StatCard 
           title="Aging Products" 
-          value="482 Items" 
+          value={`${agingItems} Items`} 
           change="8.1" 
           isPositive={false} 
           icon={Box} 
@@ -88,7 +97,7 @@ const DashboardHome = () => {
         />
         <StatCard 
           title="Expiring Soon" 
-          value="24 Batches" 
+          value={`${expiringBatches} Batches`} 
           change="12.5" 
           isPositive={false} 
           icon={AlertCircle} 
@@ -96,7 +105,7 @@ const DashboardHome = () => {
         />
         <StatCard 
           title="Surplus Sold" 
-          value="$84,200" 
+          value={`₹${surplusSold.toLocaleString()}`} 
           change="15.8" 
           isPositive={true} 
           icon={TrendingUp} 
@@ -110,7 +119,7 @@ const DashboardHome = () => {
           <div className="flex justify-between items-center mb-8">
             <div>
               <h3 className="text-lg font-bold">Inventory Pricing Trends</h3>
-              <p className="text-xs text-muted">Revenue captured vs potential loss</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Revenue captured vs potential loss</p>
             </div>
             <select className="bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-xs font-semibold p-2 outline-none">
               <option>Last 7 Days</option>
@@ -126,12 +135,12 @@ const DashboardHome = () => {
                     <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: 'var(--text-muted)', fontSize: 12}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: 'var(--text-muted)', fontSize: 12}} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.2)" />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)', borderRadius: '12px', boxShadow: 'var(--shadow-lg)' }}
-                  itemStyle={{ fontSize: '12px' }}
+                  itemStyle={{ fontSize: '12px', color: 'var(--text-main)' }}
                 />
                 <Area type="monotone" dataKey="revenue" stroke="var(--primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
                 <Area type="monotone" dataKey="potential" stroke="var(--secondary)" strokeWidth={2} strokeDasharray="5 5" fill="transparent" />
